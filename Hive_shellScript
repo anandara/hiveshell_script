@@ -1,0 +1,65 @@
+hive -e "select * from bucketing_test" >select.txt
+
+result=`echo $?`
+
+if [ $result -ne 0 ]; then
+
+echo "Aye here we have a hive Error!!!!"
+
+echo "Hive error number is: $result"
+
+exit 1
+
+else
+
+echo "no error, do your stuffs"
+
+fi
+
+
+------------------------------------------------------------------------------------
+rm -f tableNames.txt
+rm -f HiveTableDDL.txt
+hive -e "use $1; show tables;" > tableNames.txt  
+wait
+while read LINE
+do
+   hive -e "use $1;show create table $LINE" |
+     sed -n '1,/create table /p'
+   printf  ";\n\n" 
+done < tableNames.txt >> table.hql
+rm -f tableNames.txt
+echo "Table DDL generated"
+
+
+----------------------------------------------------------------------------------------------
+
+
+hive -e 'show databases' will return all databases
+
+hive -e 'use $d; show tables' will return all tables in database $d
+
+hive -e 'use $d; describe $tbl' will describe table $tbl in database $d
+
+------------------------------------------------------------------------------------------------
+
+$ grep 'INTO\|FROM\|JOIN' *.sql | sed -r 's/.*?(FROM|INTO|JOIN)\s`?([^` ]*).*/\2/g'
+$ grep 'INTO\|FROM\|JOIN' *.sql | sed -r 's/.*?(FROM|INTO|JOIN)\s`?([^` ]*).*/\2/g' | sort -u
+
+https://askubuntu.com/questions/797455/regular-expression-to-pull-db-table-names-from-sql-files
+-------------------------------------------------------------
+
+
+You can collect the statistics on the table by using Hive ANALAYZE command. Hive cost based optimizer make use of these statistics to create optimal execution plan.
+
+Below is the example of computing statistics on Hive tables:
+
+hive> ANALYZE TABLE stud COMPUTE STATISTICS;
+
+SELECT * FROM hive.PARTITION_PARAMS AS A, hive.PARTITIONS AS B WHERE A.PARAM_KEY='numRows' 
+and A.PART_ID=B.PART_ID and A.PART_ID IN ( SELECT PART_ID FROM hive.PARTITIONS WHERE TBL_ID=(SELECT A.TBL_ID FROM hive.TBLS AS A, hive.DBS AS B WHERE A.DB_ID=B.DB_ID AND B.NAME='DATABASE_NAME' AND A.TBL_NAME='TABLE_NAME'))
+
+
+------------------Get the no.of column--------------------------
+>count = hive -S -e 'describe ' | wc -l;
+>echo $count;
